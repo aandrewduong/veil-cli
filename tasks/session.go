@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"fmt"
-	"goquery"
+	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"strings"
 	"time"
@@ -151,6 +151,7 @@ func (t *Task) SubmitSSOManager() error {
 	return nil
 }
 
+// Todo: Dump cookiejar to save existing session
 func (t *Task) SaveSession() {
 	t.Client.GetCookieJar()
 }

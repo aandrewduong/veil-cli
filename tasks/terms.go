@@ -35,4 +35,7 @@ func (t *Task) GetTerms() error {
 func (t *Task) GetTermByName(term string) {
 	t.GetTerms()
 	t.TermID = t.Terms[term]
+	if len(t.TermID) > 0 {
+
+	}
 }

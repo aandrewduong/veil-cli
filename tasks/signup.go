@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"goquery"
+	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"regexp"
 	"strings"
@@ -17,6 +17,8 @@ type SignupSession struct {
 }
 
 func (t *Task) CheckAuthSession() error {
+
+	// I believe visiting this endpoint will "extend" the lifetime of the session, however this has not been tested
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
@@ -30,7 +32,6 @@ func (t *Task) CheckAuthSession() error {
 	}
 	body, _ := readBody(response)
 	if strings.Contains(string(body), "userNotLoggedIn") {
-		fmt.Println("Invalid Login Session")
 		t.GenSessionId()
 		t.GenSession()
 		t.Login()
@@ -222,15 +223,36 @@ func (t *Task) GetRegistrationStatus() error {
 			if now.After(targetTime) {
 				return nil
 			} else if now.Before(targetTime) {
-
 				t.CheckCRNs()
-				timeToWait := targetTime.Sub(now) + 2*time.Second
+				timeToWait := targetTime.Sub(now) + 1*time.Second
 				resumeDate := now.Add(timeToWait)
 
 				fmt.Printf("Waiting for Registration to open: %s\n", resumeDate.Format(time.RFC1123))
 				fmt.Printf("Will continue in %s\n", formatDuration(timeToWait))
+
+				// Using a goroutine with to start a ticket that ticks every 5 minutes that checks and "refreshes" the authentication session
+				go func() {
+					ticker := time.NewTicker(5 * time.Minute)
+					defer ticker.Stop()
+
+					endTime := time.Now().Add(timeToWait)
+					for now := range ticker.C {
+						err := t.CheckAuthSession()
+						if err != nil {
+							fmt.Println(err)
+						}
+
+						if now.After(endTime) {
+							break
+						}
+					}
+				}()
+
 				time.Sleep(timeToWait)
-				t.CheckAuthSession()
+				err := t.CheckAuthSession()
+				if err != nil {
+					return err
+				}
 				return t.GetRegistrationStatus()
 			}
 		}
@@ -245,7 +267,9 @@ func (t *Task) VisitClassRegistration() error {
 		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
-	response, err := t.DoReq(t.MakeReq("GET", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration", headers, nil), "Visiting Class Registration", true)
+	// Using HEAD method is faster as the server returns headers only, without the body of the response
+
+	response, err := t.DoReq(t.MakeReq("HEAD", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration", headers, nil), "Visiting Class Registration", true)
 	if err != nil {
 		discardResp(response)
 		return err
@@ -285,7 +309,10 @@ func (t *Task) AddCourse(course string) error {
 
 func (t *Task) AddCourses() error {
 	for _, course := range t.CRNs {
-		t.AddCourse(course)
+		err := t.AddCourse(course)
+		if err != nil {
+			return err
+		}
 	}
 	if len(t.Session.SignupSession.Model) == 0 {
 		return errors.New("Unable To Add Courses")
@@ -330,8 +357,8 @@ func (t *Task) SendBatch() error {
 					t.SendNotification(data.CourseTitle, fmt.Sprintf("Successful Enrollment (%s)", data.CourseReferenceNumber))
 				} else if data.StatusDescription == "Errors Preventing Registration" {
 					fmt.Printf("[%d] - Errors encountered adding [%s - %s %s - %s]\n", len(data.CrnErrors), data.CourseReferenceNumber, data.Subject, data.CourseNumber, data.CourseTitle)
-					for _, error := range data.CrnErrors {
-						fmt.Printf("%s\n", error.Message)
+					for _, err := range data.CrnErrors {
+						fmt.Printf("%s\n", err.Message)
 					}
 				}
 			}
