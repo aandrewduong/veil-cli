@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
+	"goquery"
 	"net/url"
 	"regexp"
 	"strings"
@@ -18,7 +18,6 @@ type SignupSession struct {
 
 func (t *Task) CheckAuthSession() error {
 
-	// I believe visiting this endpoint will "extend" the lifetime of the session, however this has not been tested
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
@@ -32,14 +31,7 @@ func (t *Task) CheckAuthSession() error {
 	}
 	body, _ := readBody(response)
 	if strings.Contains(string(body), "userNotLoggedIn") {
-		t.GenSessionId()
 		t.GenSession()
-		t.Login()
-		t.SubmitCommonAuth()
-		t.SubmitSSOManager()
-		t.RegisterPostSignIn()
-		t.SubmitSamIsso()
-		t.SubmitSSBSp()
 	}
 	return nil
 }
@@ -117,22 +109,6 @@ func (t *Task) SubmitSSBSp() error {
 	return nil
 }
 
-func (t *Task) SaveTerm() error {
-	headers := [][2]string{
-		{"accept", "*/*"},
-		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
-	}
-
-	url := fmt.Sprintf("https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/term/saveTerm?mode=registration&term=%s&uniqueSessionId=%s", t.TermID, t.Session.UniqueSessionId)
-	response, err := t.DoReq(t.MakeReq("GET", url, headers, nil), "Submitting Term", true)
-	if err != nil {
-		discardResp(response)
-		return err
-	}
-	return nil
-}
-
 func (t *Task) CheckCRN(course string) error {
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
@@ -192,8 +168,7 @@ func (t *Task) GetRegistrationStatus() error {
 		return err
 	}
 
-	var hasFailure bool
-	var hasRegistrationTime bool
+	var hasFailure, hasRegistrationTime bool
 	var timeFailure string
 
 	for _, failure := range registrationStatus.StudentEligFailures {
@@ -211,6 +186,7 @@ func (t *Task) GetRegistrationStatus() error {
 	}
 
 	if hasFailure && hasRegistrationTime {
+		timeFailure = "02/28/2024 09:00 PM"
 		pattern := regexp.MustCompile(`\d{2}/\d{2}/\d{4} \d{2}:\d{2} [APM]{2}`)
 		matches := pattern.FindAllString(timeFailure, -1)
 
@@ -229,8 +205,6 @@ func (t *Task) GetRegistrationStatus() error {
 
 				fmt.Printf("Waiting for Registration to open: %s\n", resumeDate.Format(time.RFC1123))
 				fmt.Printf("Will continue in %s\n", formatDuration(timeToWait))
-
-				// Using a goroutine with to start a ticket that ticks every 5 minutes that checks and "refreshes" the authentication session
 				go func() {
 					ticker := time.NewTicker(5 * time.Minute)
 					defer ticker.Stop()
@@ -267,7 +241,7 @@ func (t *Task) VisitClassRegistration() error {
 		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
-	// Using HEAD method is faster as the server returns headers only, without the body of the response
+	// Using HEAD is faster in this case as we don't want the response body.
 
 	response, err := t.DoReq(t.MakeReq("HEAD", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration", headers, nil), "Visiting Class Registration", true)
 	if err != nil {
@@ -353,7 +327,7 @@ func (t *Task) SendBatch() error {
 		for _, courseReferenceNumber := range t.CRNs {
 			if data.CourseReferenceNumber == courseReferenceNumber {
 				if data.StatusDescription == "Registered" {
-					fmt.Printf("[%s - %s %s - %s] - Successfully registered\n", data.CourseReferenceNumber, data.Subject, data.CourseNumber, data.CourseTitle)
+					fmt.Printf("[%s - %s %s - %s] - Successfully Registered\n", data.CourseReferenceNumber, data.Subject, data.CourseNumber, data.CourseTitle)
 					t.SendNotification(data.CourseTitle, fmt.Sprintf("Successful Enrollment (%s)", data.CourseReferenceNumber))
 				} else if data.StatusDescription == "Errors Preventing Registration" {
 					fmt.Printf("[%d] - Errors encountered adding [%s - %s %s - %s]\n", len(data.CrnErrors), data.CourseReferenceNumber, data.Subject, data.CourseNumber, data.CourseTitle)

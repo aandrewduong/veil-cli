@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
+	"goquery"
 	"io"
 	"math/rand"
 	"strings"
@@ -15,16 +15,19 @@ import (
 )
 
 type Task struct {
-	Terms      map[string]string
-	Username   string
-	Password   string
-	Subject    string
-	CRNs       []string
-	TermID     string
-	UserAgent  string
-	Client     tls_client.HttpClient
-	Session    Session
-	WebhookURL string
+	Mode          string
+	Terms         map[string]string
+	Username      string
+	Password      string
+	Subject       string
+	CRNs          []string
+	TermID        string
+	UserAgent     string
+	Client        tls_client.HttpClient
+	Session       Session
+	WebhookURL    string
+	HomepageURL   string
+	SSOManagerURL string
 }
 
 func (t *Task) MakeReq(method string, url string, headers [][2]string, body []byte) *http.Request {
@@ -44,7 +47,7 @@ func (t *Task) DoReq(req *http.Request, stage string, useDefaultResponseHandling
 	resp, err := t.Client.Do(req)
 
 	if useDefaultResponseHandling {
-		if resp.StatusCode == 400 || resp.StatusCode >= 500 {
+		if resp.StatusCode >= 400 && resp.StatusCode <= 499 || resp.StatusCode >= 500 {
 			body, _ := readBody(resp)
 			reader := strings.NewReader(string(body))
 			document, err := goquery.NewDocumentFromReader(reader)
@@ -71,7 +74,7 @@ func (t *Task) SendNotification(action string, message string) {
 				Footer: &Footer{
 					Text: "veil-v2",
 				},
-				Timestamp: time.Now().Format("2006-01-02T15:04:05.000Z"),
+				Timestamp: time.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
 			},
 		},
 	}
@@ -140,4 +143,20 @@ func formatDuration(time time.Duration) string {
 	seconds := totalSeconds % 60
 
 	return fmt.Sprintf("%dd %dh %dm %ds", days, hours, minutes, seconds)
+}
+
+func (t *Task) Run() {
+	if t.Mode == "Signup" {
+		t.HomepageURL = "https://ssb-prod.ec.fhda.edu/ssomanager/saml/login?relayState=%2Fc%2Fauth%2FSSB%3Fpkg%3Dhttps%3A%2F%2Fssb-prod.ec.fhda.edu%2FPROD%2Ffhda_uportal.P_DeepLink_Post%3Fp_page%3Dbwskfreg.P_AltPin%26p_payload%3De30%3D"
+		t.SSOManagerURL = "https://ssb-prod.ec.fhda.edu/ssomanager/saml/SSO"
+		t.Signup()
+	} else if t.Mode == "Classes" {
+		t.Classes()
+	} else if t.Mode == "Transcript" {
+		t.HomepageURL = "https://dw-prod.ec.fhda.edu/responsiveDashboard/worksheets/WEB31"
+		t.SSOManagerURL = "https://dw-prod.ec.fhda.edu/responsiveDashboard/saml/SSO"
+		t.Transcript()
+	} else if t.Mode == "Watch" {
+		t.Watch()
+	}
 }

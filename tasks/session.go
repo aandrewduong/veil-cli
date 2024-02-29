@@ -2,13 +2,14 @@ package tasks
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
+	"goquery"
 	"net/url"
 	"strings"
 	"time"
 )
 
 type Session struct {
+	LoginAttempts   int
 	SAMLResponse    string
 	RelayState      string
 	SignupSession   SignupSession
@@ -20,7 +21,7 @@ func (t *Task) GenSessionId() error {
 	return nil
 }
 
-func (t *Task) GenSession() error {
+func (t *Task) VisitHomepage() error {
 
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
@@ -28,7 +29,7 @@ func (t *Task) GenSession() error {
 		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
-	response, err := t.DoReq(t.MakeReq("GET", "https://ssb-prod.ec.fhda.edu/ssomanager/saml/login?relayState=%2Fc%2Fauth%2FSSB%3Fpkg%3Dhttps%3A%2F%2Fssb-prod.ec.fhda.edu%2FPROD%2Ffhda_uportal.P_DeepLink_Post%3Fp_page%3Dbwskfreg.P_AltPin%26p_payload%3De30%3D", headers, nil), "Gen Session", true)
+	response, err := t.DoReq(t.MakeReq("GET", t.HomepageURL, headers, nil), "Gen Session", true)
 	if err != nil {
 		discardResp(response)
 		return err
@@ -44,11 +45,13 @@ func (t *Task) Login() error {
 		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
+	t.Session.LoginAttempts++
+
 	values := url.Values{}
-	values.Set("j_username", "20482280")
-	values.Set("j_password", "Poke20031")
+	values.Set("j_username", t.Username)
+	values.Set("j_password", t.Password)
 	values.Set("_eventId_proceed", "")
-	response, err := t.DoReq(t.MakeReq("POST", "https://ssoshib.fhda.edu/idp/profile/SAML2/Redirect/SSO?execution=e1s1", headers, []byte(values.Encode())), "Logging In", true)
+	response, err := t.DoReq(t.MakeReq("POST", fmt.Sprintf("https://ssoshib.fhda.edu/idp/profile/SAML2/Redirect/SSO?execution=e1s%d", t.Session.LoginAttempts), headers, []byte(values.Encode())), "Logging In", true)
 	if err != nil {
 		discardResp(response)
 		return err
@@ -143,7 +146,7 @@ func (t *Task) SubmitSSOManager() error {
 		"SAMLResponse": {t.Session.SAMLResponse},
 	}
 
-	response, err := t.DoReq(t.MakeReq("POST", "https://ssb-prod.ec.fhda.edu/ssomanager/saml/SSO", headers, []byte(values.Encode())), "Submitting SSO Manager", true)
+	response, err := t.DoReq(t.MakeReq("POST", t.SSOManagerURL, headers, []byte(values.Encode())), "Submitting SSO Manager", true)
 	if err != nil {
 		discardResp(response)
 		return err
@@ -151,7 +154,13 @@ func (t *Task) SubmitSSOManager() error {
 	return nil
 }
 
-// Todo: Dump cookiejar to save existing session
-func (t *Task) SaveSession() {
-	t.Client.GetCookieJar()
+func (t *Task) GenSession() {
+	t.GenSessionId()
+	t.VisitHomepage()
+	t.Login()
+	t.SubmitCommonAuth()
+	t.SubmitSSOManager()
+	t.RegisterPostSignIn()
+	t.SubmitSamIsso()
+	t.SubmitSSBSp()
 }

@@ -1,2 +1,2 @@
-Username,Password,Term,CRNs
-20482280,Poke20031,2024 Spring De Anza,0
+Username,Password,Term,Subject,Mode,CRNs,Webhook
+000000,TestTest123!,2024 Spring De Anza,MATH,Signup,"41846,42163,41415",https://discord.com/api/webhooks/
