@@ -75,7 +75,7 @@ Signup task and try to enroll you in that waitlist spot.
 Scenario 3:
 How do I get the catalog of a unpublished term? You would still use Search mode. The task will build the Term ID locally instead of using FHDA's API because that term isn't published yet.
 
-Have any questions or feature requests? Message me on Discord! @ascendingz
+Encounter any bugs or have questions/feature requests? Message me on Discord! @ascendingz
 
 ## Mode
 
