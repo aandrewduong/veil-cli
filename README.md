@@ -16,7 +16,6 @@ Hope people can build off this project, enjoy!
 - [Compilation](#compilation)
 - [Usage](#usage)
 - [Modes](#modes)
-- [Notification Example](#notification-example)
 
 
 ## Key Features
