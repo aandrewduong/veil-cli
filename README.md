@@ -79,7 +79,7 @@ Have any questions or feature requests? Message me on Discord! @ascendingz
 
 ## Mode
 
-- **Release**: Essentially the same as Signup mode. However, the program will wait until (SavedRegistrationTime - 5 minutes) before running. For example, if my registration time was 8:00 AM, the program will sleep until 7:55 AM.
+- **Release**: Essentially the same as Signup mode. However, the program will wait until (SavedRegistrationTime - 5 minutes) before running. For example, if my registration time was 8:00 AM, the program will sleep until 7:55 AM. (Meaning you can run this program overnight!)
 - **Signup**: Enroll in classes with specified CRNs (Course Refence Numbers).
 - **Search**: Search for all the sections based on given term, section and subject.
 - **Transcript**: Export your "unofficial transcript", or data of previously enrolled courses.
