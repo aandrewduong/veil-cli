@@ -75,8 +75,6 @@ Signup task and try to enroll you in that waitlist spot.
 Scenario 3:
 How do I get the catalog of a unpublished term? You would still use Search mode. The task will build the Term ID locally instead of using FHDA's API because that term isn't published yet.
 
-Encounter any bugs or have questions/feature requests? Message me on Discord! @ascendingz
-
 ## Mode
 
 - **Release**: Essentially the same as Signup mode. However, the program will wait until (SavedRegistrationTime - 5 minutes) before running. For example, if my registration time was 8:00 AM, the program will sleep until 7:55 AM. (Meaning you can run this program overnight!)
@@ -87,3 +85,4 @@ Encounter any bugs or have questions/feature requests? Message me on Discord! @a
 
 ![image](https://github.com/aandrewduong/veil-v2/assets/135930507/e6e862df-2fde-4015-9095-d9e4818047f3)
 
+Encounter any bugs or have questions/feature requests? Message me on Discord! @ascendingz
