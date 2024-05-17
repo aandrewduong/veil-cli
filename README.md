@@ -43,7 +43,7 @@ For the tool to function correctly, "settings.csv" is required to be setup prope
 | Term                 | Term                                                | `2024 Summer De Anza`                        |
 | Subject              | Subject (Used for Class Search)                     | `MATH`                                       |
 | Mode                 | Type of Task                                        | `Signup`                                     |
-| CRNs                 | Course Refernce Numbers                             | `47520,44412,41846`                          |
+| CRNs                 | Course Reference Numbers                             | `47520,44412,41846`                          |
 | Webhook              | Discord Webhook URL (For Notifications)             | `https://discord.com/api/webhooks/[gone] `   |
 | SavedRegistrationTime | Saved Registration Time (Use Signup Mode)          | (Do not Edit on your own)                    |
 
