@@ -45,7 +45,7 @@ For the tool to function correctly, "settings.csv" is required to be setup prope
 | Mode                 | Type of Task                                        | `Signup`                                     |
 | CRNs                 | Course Refernce Numbers                             | `47520,44412,41846`                          |
 | Webhook              | Discord Webhook URL (For Notifications)             | `https://discord.com/api/webhooks/[gone] `   |
-| SavedRegistrationTime | Saved Registration Time (Use Signup Mode)          |                                              |
+| SavedRegistrationTime | Saved Registration Time (Use Signup Mode)          | (Do not Edit on your own)                    |
 
 To create a Discord Webhook, See [How to Create a Discord Webhook](https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks).
 
