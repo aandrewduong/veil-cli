@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"goquery"
+	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"regexp"
 	"strings"
