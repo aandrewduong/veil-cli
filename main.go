@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 	"veil-v2/tasks"
@@ -16,9 +17,7 @@ import (
 )
 
 func main() {
-
-	// https://www.lifewire.com/free-and-public-dns-servers-2626062
-	var dnsServers = []string{"8.8.8.8", "8.8.4.4", "76.76.2.0", "76.76.10.0", "1.1.1.1", "1.0.0.1"}
+	var dnsServers = []string{"8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1"}
 	randomIndex := rand.Intn(len(dnsServers))
 
 	dnsServer := dnsServers[randomIndex]
@@ -36,11 +35,11 @@ func main() {
 			},
 		},
 	}
+
 	client_options := []tls_client.HttpClientOption{
 		tls_client.WithClientProfile(profiles.Chrome_117),
 		tls_client.WithCookieJar(jar),
 		tls_client.WithDialer(dialer),
-		//tls_client.WithDebug(),
 	}
 	t.Client, _ = tls_client.NewHttpClient(tls_client.NewLogger(), client_options...)
 
@@ -68,7 +67,7 @@ func main() {
 			}
 			break
 		}
-		if len(row) < 7 {
+		if len(row) < 8 {
 			fmt.Println("Invalid Configuration File")
 			continue
 		}
@@ -79,6 +78,26 @@ func main() {
 		t.Mode = row[4]
 		t.CRNs = strings.Split(row[5], ",")
 		t.WebhookURL = row[6]
+		var registrationTime = row[7]
+
+		if t.Mode == "Release" {
+			t.Mode = "Signup"
+			pattern := regexp.MustCompile(`\d{2}/\d{2}/\d{4} \d{2}:\d{2} [APM]{2}`)
+			matches := pattern.FindAllString(registrationTime, -1)
+			if len(matches) == 0 {
+				fmt.Printf("Invalid Registration Time Format")
+			}
+
+			location, _ := time.LoadLocation("America/Los_Angeles")
+			targetTime, _ := time.ParseInLocation("01/02/2006 03:04 PM", matches[0], location)
+			now := time.Now().In(location)
+			timeToWait := targetTime.Sub(now) - 5*time.Minute
+
+			if now.Before(targetTime) {
+				fmt.Printf("Will continue in: %s\n", timeToWait.String())
+				time.Sleep(timeToWait)
+			}
+		}
 	}
 
 	t.Run()

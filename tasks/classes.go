@@ -104,7 +104,7 @@ func (t *Task) ExportCourseData(courses []CourseInfo) error {
 	defer writer.Flush()
 
 	header := []string{"Term", "Course Reference Number", "Subject", "Course Number", "Sequence Number", "Course Title", "Display Name", "Begin Time", "End Time", "Start Date", "End Date", "Meeting Type", "Room", "Maximum Enrollment", "Enrollment", "Seats Available", "Waitlist Available"}
-	fmt.Printf("Writing to %s\n", fileName)
+	fmt.Printf("Writing %s\n", fileName)
 	err = writer.Write(header)
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func (t *Task) ExportCourseData(courses []CourseInfo) error {
 			return err
 		}
 	}
-	fmt.Println("Exported search data")
+	fmt.Println("Exported Search Data")
 	return nil
 }
 

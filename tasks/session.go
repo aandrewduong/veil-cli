@@ -71,15 +71,20 @@ func (t *Task) Login() error {
 
 	switch message {
 	case "The username you entered cannot be identified.":
-		fmt.Println("Invalid username")
+		fmt.Println("Invalid Username")
 	case "The password you entered was incorrect.":
-		fmt.Println("Invalid password")
+		fmt.Println("Invalid Password")
+		time.Sleep(2 * time.Second)
+		t.Login()
 	case "You may be seeing this page because you used the Back button while browsing a secure web site or application. Alternatively, you may have mistakenly bookmarked the web login form instead of the actual web site you wanted to bookmark or used a link created by somebody else who made the same mistake.  Left unchecked, this can cause errors on some browsers or result in you returning to the web site you tried to leave, so this page is presented instead.":
-		fmt.Println("Bad session")
+		fmt.Println("Bad Session")
+		t.GenSession()
 	case "":
 		break
 	default:
 		fmt.Println(message)
+		time.Sleep(2 * time.Second)
+		t.Login()
 	}
 
 	relayState := getSelectorAttr(document, "input[name='RelayState']", "value")

@@ -128,6 +128,8 @@ func (t *Task) CheckCRN(course string) error {
 	}
 	if !courseData.Olr {
 		fmt.Println(courseData.ResponseDisplay)
+	} else {
+		fmt.Printf("[%s] - Unable To Get Data\n", course)
 	}
 	return nil
 }
@@ -186,25 +188,24 @@ func (t *Task) GetRegistrationStatus() error {
 	}
 
 	if hasFailure && hasRegistrationTime {
-		timeFailure = "02/28/2024 09:00 PM"
 		pattern := regexp.MustCompile(`\d{2}/\d{2}/\d{4} \d{2}:\d{2} [APM]{2}`)
 		matches := pattern.FindAllString(timeFailure, -1)
 
 		if len(matches) > 0 {
 			location, _ := time.LoadLocation("America/Los_Angeles")
 			targetTime, _ := time.ParseInLocation("01/02/2006 03:04 PM", matches[0], location)
-
 			now := time.Now().In(location)
+			saveRegistrationTime(matches[0])
 
 			if now.After(targetTime) {
-				return nil
+				time.Sleep(2 * time.Second)
+				return t.GetRegistrationStatus()
 			} else if now.Before(targetTime) {
 				t.CheckCRNs()
-				timeToWait := targetTime.Sub(now) + 1*time.Second
-				resumeDate := now.Add(timeToWait)
+				timeToWait := targetTime.Sub(now)
 
-				fmt.Printf("Waiting for Registration to open: %s\n", resumeDate.Format(time.RFC1123))
-				fmt.Printf("Will continue in %s\n", formatDuration(timeToWait))
+				fmt.Printf("Waiting for Registration to open: %s\n", targetTime.Format(time.RFC1123))
+				fmt.Printf("Will continue in %s\n", formatDuration(targetTime.Sub(now)))
 				go func() {
 					ticker := time.NewTicker(5 * time.Minute)
 					defer ticker.Stop()
@@ -222,7 +223,7 @@ func (t *Task) GetRegistrationStatus() error {
 					}
 				}()
 
-				time.Sleep(timeToWait)
+				time.Sleep(targetTime.Sub(now))
 				err := t.CheckAuthSession()
 				if err != nil {
 					return err
@@ -240,9 +241,6 @@ func (t *Task) VisitClassRegistration() error {
 		{"accept-language", "en-US,en;q=0.9"},
 		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
-
-	// Using HEAD is faster in this case as we don't want the response body.
-
 	response, err := t.DoReq(t.MakeReq("HEAD", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration", headers, nil), "Visiting Class Registration", true)
 	if err != nil {
 		discardResp(response)
@@ -271,6 +269,9 @@ func (t *Task) AddCourse(course string) error {
 	}
 	if addCourse.Success {
 		model, err := extractModel([]byte(body))
+		if t.WaitlistTask {
+			model["selectedAction"] = "WL"
+		}
 		if err != nil {
 			return err
 		}
@@ -329,6 +330,9 @@ func (t *Task) SendBatch() error {
 				if data.StatusDescription == "Registered" {
 					fmt.Printf("[%s - %s %s - %s] - Successfully Registered\n", data.CourseReferenceNumber, data.Subject, data.CourseNumber, data.CourseTitle)
 					t.SendNotification(data.CourseTitle, fmt.Sprintf("Successful Enrollment (%s)", data.CourseReferenceNumber))
+				} else if data.StatusDescription == "Waitlisted" {
+					fmt.Printf("[%s - %s %s - %s] - Successfully Waitlisted\n", data.CourseReferenceNumber, data.Subject, data.CourseNumber, data.CourseTitle)
+					t.SendNotification(data.CourseTitle, fmt.Sprintf("Successful Waitlisted (%s)", data.CourseReferenceNumber))
 				} else if data.StatusDescription == "Errors Preventing Registration" {
 					fmt.Printf("[%d] - Errors encountered adding [%s - %s %s - %s]\n", len(data.CrnErrors), data.CourseReferenceNumber, data.Subject, data.CourseNumber, data.CourseTitle)
 					for _, err := range data.CrnErrors {
@@ -342,6 +346,8 @@ func (t *Task) SendBatch() error {
 }
 
 func (t *Task) Signup() error {
+	t.HomepageURL = "https://ssb-prod.ec.fhda.edu/ssomanager/saml/login?relayState=%2Fc%2Fauth%2FSSB%3Fpkg%3Dhttps%3A%2F%2Fssb-prod.ec.fhda.edu%2FPROD%2Ffhda_uportal.P_DeepLink_Post%3Fp_page%3Dbwskfreg.P_AltPin%26p_payload%3De30%3D"
+	t.SSOManagerURL = "https://ssb-prod.ec.fhda.edu/ssomanager/saml/SSO"
 	t.CheckAuthSession()
 	if err := t.GetRegistrationStatus(); err != nil {
 		return err

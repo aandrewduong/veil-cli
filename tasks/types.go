@@ -5,6 +5,18 @@ type Terms []struct {
 	Description string `json:"description"`
 }
 
+var QuarterCodes = map[string]int{
+	"Summer": 1,
+	"Fall":   2,
+	"Winter": 3,
+	"Spring": 4,
+}
+
+var CampusCodes = map[string]int{
+	"Foothill": 1,
+	"De Anza":  2,
+}
+
 type RegistrationStatus struct {
 	StudentEligValid    bool     `json:"studentEligValid"`
 	StudentEligFailures []string `json:"studentEligFailures"`
@@ -62,20 +74,20 @@ type Changes struct {
 				Description any    `json:"description"`
 				Level       any    `json:"level"`
 			} `json:"selectedLevel"`
-			CampusOverride                      any `json:"campusOverride"`
-			GradingMode                         any `json:"gradingMode"`
-			SelectedCreditHour                  any `json:"selectedCreditHour"`
-			Block                               any `json:"block"`
-			GradeComment                        any `json:"gradeComment"`
-			CreditHourInitial                   any `json:"creditHourInitial"`
-			SequenceNumber                      any `json:"sequenceNumber"`
-			CourseRegistrationStatusDescription any `json:"courseRegistrationStatusDescription"`
-			TuitionWaiverIndicator              any `json:"tuitionWaiverIndicator"`
-			RepeatOverride                      any `json:"repeatOverride"`
-			PreqOverride                        any `json:"preqOverride"`
-			CreditHour                          any `json:"creditHour"`
-			MajorOverride                       any `json:"majorOverride"`
-			CourseReferenceNumber               any `json:"courseReferenceNumber"`
+			CampusOverride                      any    `json:"campusOverride"`
+			GradingMode                         any    `json:"gradingMode"`
+			SelectedCreditHour                  any    `json:"selectedCreditHour"`
+			Block                               any    `json:"block"`
+			GradeComment                        any    `json:"gradeComment"`
+			CreditHourInitial                   any    `json:"creditHourInitial"`
+			SequenceNumber                      any    `json:"sequenceNumber"`
+			CourseRegistrationStatusDescription any    `json:"courseRegistrationStatusDescription"`
+			TuitionWaiverIndicator              any    `json:"tuitionWaiverIndicator"`
+			RepeatOverride                      any    `json:"repeatOverride"`
+			PreqOverride                        any    `json:"preqOverride"`
+			CreditHour                          any    `json:"creditHour"`
+			MajorOverride                       any    `json:"majorOverride"`
+			CourseReferenceNumber               string `json:"courseReferenceNumber"`
 			CreditHours                         struct {
 				Class               string `json:"class"`
 				CreditHourHigh      any    `json:"creditHourHigh"`

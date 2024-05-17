@@ -100,7 +100,7 @@ func (t *Task) ExportTranscriptData(transcriptSession TranscriptSession, auditIn
 	defer writer.Flush()
 
 	header := []string{"Term", "Subject", "Number", "Course Title", "Letter Grade", "Credits"}
-	fmt.Printf("Writing to %s\n", fileName)
+	fmt.Printf("Writing %s\n", fileName)
 	err = writer.Write(header)
 	if err != nil {
 		return err

@@ -3,6 +3,8 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,7 +33,31 @@ func (t *Task) GetTerms() error {
 	return nil
 }
 
+func BuildTermId(term string) string {
+
+	fmt.Println("Building Term ID (Offline)")
+	var campus string
+	data := strings.Fields(term)
+	year, quarter := data[0], data[1]
+
+	if len(data) == 4 {
+		campus = "De Anza"
+	}
+	quarterCode := QuarterCodes[quarter]
+	campusCode := CampusCodes[campus]
+
+	yearInt, _ := strconv.Atoi(year)
+	if quarter == "Summer" {
+		yearInt++
+	}
+
+	return fmt.Sprintf("%d%d%d", yearInt, quarterCode, campusCode)
+}
+
 func (t *Task) GetTermByName(term string) {
 	t.GetTerms()
 	t.TermID = t.Terms[term]
+	if t.Terms[term] == "" {
+		t.TermID = BuildTermId(term)
+	}
 }

@@ -2,11 +2,13 @@ package tasks
 
 import (
 	"bytes"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"goquery"
 	"io"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
@@ -28,6 +30,7 @@ type Task struct {
 	WebhookURL    string
 	HomepageURL   string
 	SSOManagerURL string
+	WaitlistTask  bool
 }
 
 func (t *Task) MakeReq(method string, url string, headers [][2]string, body []byte) *http.Request {
@@ -145,10 +148,70 @@ func formatDuration(time time.Duration) string {
 	return fmt.Sprintf("%dd %dh %dm %ds", days, hours, minutes, seconds)
 }
 
+func saveRegistrationTime(registrationTime string) {
+	file, err := os.Open("settings.csv")
+	if err != nil {
+		fmt.Println("Error Opening settings.csv:", err)
+		return
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		fmt.Println("Error Reading settings.csv:", err)
+		return
+	}
+
+	header := records[0]
+	var timeIndex int
+	found := false
+	for i, field := range header {
+		if field == "SavedRegistrationTime" {
+			timeIndex = i
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		fmt.Println("SavedRegistrationTime field not found in settings.csv")
+		return
+	}
+
+	for i := 1; i < len(records); i++ {
+		if len(records[i]) <= timeIndex {
+			fmt.Println("Invalid Row, Missing SavedRegistrationTime field")
+			continue
+		}
+		records[i][timeIndex] = registrationTime
+	}
+
+	outputFile, err := os.Create("settings.csv")
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer outputFile.Close()
+
+	writer := csv.NewWriter(outputFile)
+	err = writer.WriteAll(records)
+	if err != nil {
+		fmt.Println("Error writing settings.csv :", err)
+		return
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		fmt.Println("Error flushing writer: ", err)
+		return
+	}
+
+	fmt.Println("Saved Registration Time")
+}
+
 func (t *Task) Run() {
 	if t.Mode == "Signup" {
-		t.HomepageURL = "https://ssb-prod.ec.fhda.edu/ssomanager/saml/login?relayState=%2Fc%2Fauth%2FSSB%3Fpkg%3Dhttps%3A%2F%2Fssb-prod.ec.fhda.edu%2FPROD%2Ffhda_uportal.P_DeepLink_Post%3Fp_page%3Dbwskfreg.P_AltPin%26p_payload%3De30%3D"
-		t.SSOManagerURL = "https://ssb-prod.ec.fhda.edu/ssomanager/saml/SSO"
 		t.Signup()
 	} else if t.Mode == "Classes" {
 		t.Classes()

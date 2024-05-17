@@ -54,6 +54,9 @@ func (t *Task) CheckEnrollmentData(CRN string) error {
 	if numEnrollmentSeatsAvailable == 0 {
 		if numWaitlistSeatsAvailable > 0 {
 			t.SendNotification("Watch Task", fmt.Sprintf("[%s] %s Waitlist spot(s) is now Available", CRN, waitlistSeatsAvailable))
+			t.WaitlistTask = true
+			t.CRNs = []string{CRN}
+			t.Signup()
 		} else {
 			time.Sleep(2 * time.Second)
 			return t.CheckEnrollmentData(CRN)
