@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"fmt"
-	"goquery"
+	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"strconv"
 	"strings"
