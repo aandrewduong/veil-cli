@@ -75,7 +75,7 @@ Signup task and try to enroll you in that waitlist spot.
 Scenario 3:
 How do I get the catalog of a unpublished term? You would still use Search mode. The task will build the Term ID locally instead of using FHDA's API because that term isn't published yet.
 
-If you have any questions message me on Discord!
+Have any questions or feature requests? Message me on Discord! @ascendingz
 
 ## Mode
 
@@ -85,7 +85,5 @@ If you have any questions message me on Discord!
 - **Transcript**: Export your "unofficial transcript", or data of previously enrolled courses.
 - **Watch**: Monitor enrollment data, sending a notification if a waitlist or enrollment spot is available. If a waitlist spot is available, it'll run a Signup mode task and enroll in the waitlist.
 
-## Notification Example
+![image](https://github.com/aandrewduong/veil-v2/assets/135930507/e6e862df-2fde-4015-9095-d9e4818047f3)
 
-![Notification](https://media.discordapp.net/attachments/1022240002408730644/1212615611465859082/image.png?ex=65f27b4b&is=65e0064b&hm=75468e9840762051800341e47605d339dbe3c50f80e45e6a678131d099eebb43&=&format=webp&quality=lossless)
-![Notification](https://media.discordapp.net/attachments/1022240002408730644/1212616160810504212/image.png?ex=65f27bce&is=65e006ce&hm=6a8b307714e536217d06d7364351138b5b09171cc5d2ccb7e70e669bcec83e10&=&format=webp&quality=lossless)
