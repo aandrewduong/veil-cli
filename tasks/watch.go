@@ -38,31 +38,33 @@ func (t *Task) CheckEnrollmentData(CRN string) error {
 		return err
 	}
 
-	var enrollmentSeatsAvailable, waitlistSeatsAvailable string
+	var enrollmentSeatsAvailable, waitlistCapacity, waitlistActual, waitlistSeatsAvailable string
 
 	document.Find("span.status-bold").Each(func(i int, s *goquery.Selection) {
 		if strings.Contains(s.Text(), "Enrollment Seats Available:") {
 			enrollmentSeatsAvailable = s.Next().Text()
 		} else if strings.Contains(s.Text(), "Waitlist Seats Available:") {
 			waitlistSeatsAvailable = s.Next().Text()
+		} else if strings.Contains(s.Text(), "Waitlist Capacity:") {
+			waitlistCapacity = s.Next().Text()
+		} else if strings.Contains(s.Text(), "Waitlist Actual:") {
+			waitlistActual = s.Next().Text()
 		}
 	})
 
 	numEnrollmentSeatsAvailable, _ := strconv.Atoi(enrollmentSeatsAvailable)
+	numWaitlistCapacity, _ := strconv.Atoi(waitlistCapacity)
+	numWaitlistActual, _ := strconv.Atoi(waitlistActual)
 	numWaitlistSeatsAvailable, _ := strconv.Atoi(waitlistSeatsAvailable)
 
-	if numEnrollmentSeatsAvailable == 0 {
-		if numWaitlistSeatsAvailable > 0 {
-			t.SendNotification("Watch Task", fmt.Sprintf("[%s] %s Waitlist spot(s) is now Available", CRN, waitlistSeatsAvailable))
-			t.WaitlistTask = true
-			t.CRNs = []string{CRN}
-			t.Signup()
-		} else {
-			time.Sleep(2 * time.Second)
-			return t.CheckEnrollmentData(CRN)
-		}
+	if numWaitlistCapacity > numWaitlistActual && (numWaitlistSeatsAvailable > 0) || (numEnrollmentSeatsAvailable > 0 && numWaitlistSeatsAvailable > 0) {
+		t.SendNotification("Watch Task", fmt.Sprintf("[%s] %s Waitlist spot(s) is now Available", CRN, waitlistSeatsAvailable))
+		t.WaitlistTask = true
+		t.CRNs = []string{CRN}
+		t.Signup()
 	} else {
-		t.SendNotification("Watch Task", fmt.Sprintf("[%s] %s Enrollment Spot(s) is now Available", CRN, enrollmentSeatsAvailable))
+		time.Sleep(5 * time.Second)
+		return t.CheckEnrollmentData(CRN)
 	}
 	return nil
 }
