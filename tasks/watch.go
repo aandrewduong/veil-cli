@@ -63,6 +63,11 @@ func (t *Task) CheckEnrollmentData(CRN string) error {
 		t.CRNs = []string{CRN}
 		t.Signup()
 	} else {
+		if numEnrollmentSeatsAvailable >= 1 && numWaitlistSeatsAvailable == 0 {
+			fmt.Printf("[%s] - (Waitlist Opening Soon)\n", CRN)
+		} else {
+			fmt.Printf("[%s] - (Not Available)\n", CRN)
+		}
 		time.Sleep(5 * time.Second)
 		return t.CheckEnrollmentData(CRN)
 	}
