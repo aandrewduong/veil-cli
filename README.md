@@ -1,4 +1,4 @@
-# Veil-V2
+# Veil-CLI
 
 Veil is an open-source program written in Golang designed to efficiently scrape, process, and manage class and college enrollment data at De Anza and Foothill College. In addition to offering a seamless way to search and export class data, it also supports class enrollment and class enrollment monitoring.
 
