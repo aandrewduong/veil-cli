@@ -46,6 +46,10 @@ func (t *Task) Login() error {
 	}
 
 	t.Session.LoginAttempts++
+	if t.Session.LoginAttempts > 3 {
+	    fmt.Println("Maximum Login Attempts Reached")
+	    return nil
+	}
 
 	values := url.Values{}
 	values.Set("j_username", t.Username)
