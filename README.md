@@ -81,4 +81,3 @@ How do I get the catalog of a unpublished term? You would still use Search mode.
 
 ![image](https://github.com/aandrewduong/veil-v2/assets/135930507/e6e862df-2fde-4015-9095-d9e4818047f3)
 
-Encounter any bugs or have questions/feature requests? Message me on Discord! @ascendingz
