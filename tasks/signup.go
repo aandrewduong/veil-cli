@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type SignupSession struct {
@@ -21,7 +22,7 @@ func (t *Task) CheckAuthSession() error {
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	response, err := t.DoReq(t.MakeReq("GET", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/login/authAjax", headers, nil), "Checking Auth Session", true)
@@ -40,7 +41,7 @@ func (t *Task) RegisterPostSignIn() error {
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	response, err := t.DoReq(t.MakeReq("GET", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/registration/registerPostSignIn?mode=registration", headers, nil), "Register Post Sign In", true)
@@ -65,7 +66,7 @@ func (t *Task) SubmitSamIsso() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	values := url.Values{
@@ -94,7 +95,7 @@ func (t *Task) SubmitSSBSp() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	values := url.Values{
@@ -113,7 +114,7 @@ func (t *Task) CheckCRN(course string) error {
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	response, err := t.DoReq(t.MakeReq("GET", fmt.Sprintf("https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/classRegistration/getSectionDetailsFromCRN?courseReferenceNumber=%s&term=%s", course, t.TermID), headers, nil), fmt.Sprintf("Checking Course (%s)", course), true)
@@ -146,7 +147,7 @@ func (t *Task) GetRegistrationStatus() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	values := url.Values{
@@ -239,7 +240,7 @@ func (t *Task) VisitClassRegistration() error {
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 	response, err := t.DoReq(t.MakeReq("HEAD", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/classRegistration/classRegistration", headers, nil), "Visiting Class Registration", true)
 	if err != nil {
@@ -253,7 +254,7 @@ func (t *Task) AddCourse(course string) error {
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	response, err := t.DoReq(t.MakeReq("GET", fmt.Sprintf("https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/classRegistration/addRegistrationItem?term=%s&courseReferenceNumber=%s&olr=false", t.TermID, course), headers, nil), fmt.Sprintf("Adding Course (%s)", course), true)
@@ -300,7 +301,7 @@ func (t *Task) SendBatch() error {
 		{"accept", "application/json"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/json"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	batch := Batch{

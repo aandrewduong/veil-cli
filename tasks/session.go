@@ -2,10 +2,11 @@ package tasks
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type Session struct {
@@ -26,7 +27,7 @@ func (t *Task) VisitHomepage() error {
 	headers := [][2]string{
 		{"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	response, err := t.DoReq(t.MakeReq("GET", t.HomepageURL, headers, nil), "Gen Session", true)
@@ -42,13 +43,13 @@ func (t *Task) Login() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	t.Session.LoginAttempts++
 	if t.Session.LoginAttempts > 3 {
-	    fmt.Println("Maximum Login Attempts Reached")
-	    return nil
+		fmt.Println("Maximum Login Attempts Reached")
+		panic(1)
 	}
 
 	values := url.Values{}
@@ -105,7 +106,7 @@ func (t *Task) SubmitCommonAuth() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	values := url.Values{
@@ -131,7 +132,9 @@ func (t *Task) SubmitCommonAuth() error {
 		message = strings.TrimSpace(element.Text())
 	})
 	if strings.Contains(message, "Authentication Error!") {
-		fmt.Println("")
+		fmt.Println("Authentication Error")
+		time.Sleep(2 * time.Second)
+		t.SubmitCommonAuth()
 	}
 
 	relayState := getSelectorAttr(document, "input[name='RelayState']", "value")
@@ -147,7 +150,7 @@ func (t *Task) SubmitSSOManager() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	values := url.Values{

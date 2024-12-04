@@ -2,20 +2,23 @@ package tasks
 
 import (
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
+	"math/rand"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
+// Update 12/4/2024: Updated CheckEnrollmentData to use DoReqWithNewSession to circumvent session blocks as it creates a new session (no cookies) per call
 func (t *Task) CheckEnrollmentData(CRN string) error {
 	headers := [][2]string{
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", t.UserAgent},
 	}
 
 	values := url.Values{
@@ -23,7 +26,7 @@ func (t *Task) CheckEnrollmentData(CRN string) error {
 		"courseReferenceNumber": {CRN},
 	}
 
-	response, err := t.DoReq(t.MakeReq("POST", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/searchResults/getEnrollmentInfo", headers, []byte(values.Encode())), fmt.Sprintf("Getting Enrollment Data (%s)", CRN), true)
+	response, err := t.DoReqWithNewSession(t.MakeReq("POST", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/searchResults/getEnrollmentInfo", headers, []byte(values.Encode())), fmt.Sprintf("Getting Enrollment Data (%s)", CRN), true)
 	if err != nil {
 		fmt.Println(err)
 		discardResp(response)
@@ -68,7 +71,7 @@ func (t *Task) CheckEnrollmentData(CRN string) error {
 		} else {
 			fmt.Printf("[%s] - (Not Available)\n", CRN)
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(2501)+1500))
 		return t.CheckEnrollmentData(CRN)
 	}
 	return nil

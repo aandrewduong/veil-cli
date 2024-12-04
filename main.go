@@ -17,6 +17,7 @@ import (
 )
 
 func main() {
+
 	var dnsServers = []string{"8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1"}
 	randomIndex := rand.Intn(len(dnsServers))
 
@@ -37,11 +38,12 @@ func main() {
 	}
 
 	client_options := []tls_client.HttpClientOption{
-		tls_client.WithClientProfile(profiles.Chrome_117),
+		tls_client.WithClientProfile(profiles.Chrome_131), // Updated for Chrome 131 Profile, previous was 121
 		tls_client.WithCookieJar(jar),
 		tls_client.WithDialer(dialer),
 	}
 	t.Client, _ = tls_client.NewHttpClient(tls_client.NewLogger(), client_options...)
+	t.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
 	file, err := os.Open("settings.csv")
 	if err != nil {
