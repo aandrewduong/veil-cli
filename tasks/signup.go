@@ -270,9 +270,7 @@ func (t *Task) AddCourse(course string) error {
 	}
 	if addCourse.Success {
 		model, err := extractModel([]byte(body))
-		if t.WaitlistTask {
-			model["selectedAction"] = "WL"
-		}
+		model["selectedAction"] = "WL"
 		if err != nil {
 			return err
 		}
