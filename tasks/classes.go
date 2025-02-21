@@ -15,7 +15,7 @@ func (t *Task) SubmitTerm() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", t.UserAgent},
+		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
 	values := url.Values{
@@ -39,7 +39,7 @@ func (t *Task) GetCourses() error {
 	headers := [][2]string{
 		{"accept", "application/json"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", t.UserAgent},
+		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"},
 	}
 
 	url := fmt.Sprintf("https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_subject=%s&txt_term=%s&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=100&sortColumn=subjectDescription&sortDirection=asc", t.Subject, t.TermID)

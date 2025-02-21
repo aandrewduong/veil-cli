@@ -21,7 +21,7 @@ func (t *Task) GetStudentData() error {
 	headers := [][2]string{
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", t.UserAgent},
+		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
 	response, err := t.DoReq(t.MakeReq("GET", "https://dw-prod.ec.fhda.edu/responsiveDashboard/api/students/myself", headers, nil), "Getting Student Data", true)
@@ -55,7 +55,7 @@ func (t *Task) GetAudit(transcriptSession TranscriptSession) error {
 	headers := [][2]string{
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", t.UserAgent},
+		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
 	response, err := t.DoReq(t.MakeReq("GET", fmt.Sprintf("https://dw-prod.ec.fhda.edu/responsiveDashboard/api/audit?studentId=%s&school=%s&degree=%s&is-process-new=false&audit-type=AA&auditId=&include-inprogress=true&include-preregistered=true&aid-term=", transcriptSession.UserId, transcriptSession.SchoolKey, transcriptSession.Degree), headers, nil), "Getting Audit", true)

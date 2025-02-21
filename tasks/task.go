@@ -2,22 +2,18 @@ package tasks
 
 import (
 	"bytes"
-	"context"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"goquery"
 	"io"
 	"math/rand"
-	"net"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
-
 	http "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
-	"github.com/bogdanfinn/tls-client/profiles"
 )
 
 type Task struct {
@@ -64,58 +60,7 @@ func (t *Task) DoReq(req *http.Request, stage string, useDefaultResponseHandling
 			}
 			message := getSelectorAttr(document, "meta[name='errorMessage']", "content")
 			fmt.Printf("Error %s [%d] %s\n", stage, resp.StatusCode, message)
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1501)+1500))
-			return t.DoReq(req, stage, useDefaultResponseHandling)
-		}
-	}
-	return resp, err
-}
-
-// 12/4/2024: DoReqWithNewSession - Similar to DoReq, but creates a new client (blank state) with no cookies, only used for watch
-
-func (t *Task) DoReqWithNewSession(req *http.Request, stage string, useDefaultResponseHandling bool) (*http.Response, error) {
-
-	fmt.Println(stage)
-
-	var dnsServers = []string{"8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1"}
-	randomIndex := rand.Intn(len(dnsServers))
-
-	dnsServer := dnsServers[randomIndex]
-
-	dialer := net.Dialer{
-		Resolver: &net.Resolver{
-			PreferGo: true,
-			Dial: func(context context.Context, network, address string) (net.Conn, error) {
-				d := net.Dialer{
-					Timeout: time.Duration(5) * time.Second,
-				}
-				return d.DialContext(context, "udp", net.JoinHostPort(dnsServer, "53"))
-			},
-		},
-	}
-
-	client_options := []tls_client.HttpClientOption{
-		tls_client.WithClientProfile(profiles.Chrome_131),
-		tls_client.WithDialer(dialer),
-	}
-	t.Client, _ = tls_client.NewHttpClient(tls_client.NewLogger(), client_options...)
-
-	var resp *http.Response
-
-	resp, err := t.Client.Do(req)
-
-	if useDefaultResponseHandling {
-		if resp.StatusCode >= 400 && resp.StatusCode <= 499 || resp.StatusCode >= 500 {
-			body, _ := readBody(resp)
-			reader := strings.NewReader(string(body))
-			document, err := goquery.NewDocumentFromReader(reader)
-			if err != nil {
-				discardResp(resp)
-				fmt.Println(err)
-			}
-			message := getSelectorAttr(document, "meta[name='errorMessage']", "content")
-			fmt.Printf("Error %s [%d] %s\n", stage, resp.StatusCode, message)
-			time.Sleep(time.Millisecond * time.Duration(rand.Intn(1501)+1500))
+			time.Sleep(time.Second * 2)
 			return t.DoReq(req, stage, useDefaultResponseHandling)
 		}
 	}
@@ -124,13 +69,13 @@ func (t *Task) DoReqWithNewSession(req *http.Request, stage string, useDefaultRe
 
 func (t *Task) SendNotification(action string, message string) {
 	payload := WebhookPayload{
-		Username: "veil-cli",
+		Username: "veil-v2",
 		Embeds: []Embed{
 			{
 				Title:       action,
 				Description: message,
 				Footer: &Footer{
-					Text: "veil-cli",
+					Text: "veil-v2",
 				},
 				Timestamp: time.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
 			},
@@ -143,7 +88,7 @@ func (t *Task) SendNotification(action string, message string) {
 		{"accept", "application/json"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/json"},
-		{"user-agent", t.UserAgent},
+		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
 	}
 
 	t.DoReq(t.MakeReq("POST", t.WebhookURL, headers, []byte(string(jsonData))), "Sending Notification", false)
