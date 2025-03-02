@@ -5,7 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"goquery"
+	"github.com/PuerkitoBio/goquery"
 	"io"
 	"math/rand"
 	"os"
