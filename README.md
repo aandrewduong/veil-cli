@@ -1,83 +1,155 @@
 # Veil-CLI
 
-Veil is an open-source program written in Golang designed to efficiently scrape, process, and manage class and college enrollment data at De Anza and Foothill College. In addition to offering a seamless way to search and export class data, it also supports class enrollment and class enrollment monitoring.
+Veil is an open-source program written in **Golang** that efficiently scrapes, processes, and manages class and college enrollment data at **De Anza and Foothill College**. It provides seamless class searching, exporting, and automated enrollment monitoring.
 
-Check out the Veil-GUI version [here](https://github.com/aandrewduong/veil).
-[Linkedin](https://www.linkedin.com/in/andrew-duong-3a9931259/)
+For a graphical user interface, check out **[Veil-GUI](https://github.com/aandrewduong/veil)**.
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Andrew%20Duong-blue)](https://www.linkedin.com/in/andrew-duong-3a9931259/)
+
+---
 
 ## Table of Contents
 
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
+- [Installation & Setup](#installation--setup)
 - [Configuration](#configuration)
 - [Compilation](#compilation)
 - [Usage](#usage)
 - [Modes](#modes)
+- [Example Scenarios](#example-scenarios)
 
+---
 
 ## Key Features
 
-1. **Class Search & Export**: Ability to search for classes and export the results in CSV format.
-2. **Unofficial Transcript**: Retrieve and export your previously enrolled courses in CSV format.
-3. **Enrollment**: Enroll in courses in lighting speed.
-4. **Watch**: Watch the enrollment data for classes, notifying you if there is a waitlist or enrollment spot available and signs up for the waitlist spot for you.
+✅ **Class Search & Export** – Search for classes and export results in CSV format.  
+✅ **Unofficial Transcript** – Retrieve and export previously enrolled courses.  
+✅ **Automated Enrollment** – Enroll in classes at lightning speed.  
+✅ **Class Monitoring** – Watch class enrollment, get notified of open spots, and auto-enroll in waitlisted courses.  
+
+---
 
 ## Prerequisites
 
-- **Golang**: You need a version >=1.22.0 of [Go](https://go.dev/doc/install) installed.
+Ensure you have **Go (>=1.22.0)** installed. Download it [here](https://go.dev/doc/install).
+
+---
+
+## Installation & Setup
+
+### 1️⃣ Clone the Repository
+First, clone the Veil repository to your local machine:
+
+```sh
+git clone https://github.com/aandrewduong/veil-cli.git
+cd veil-cli
+```
+
+### 2️⃣ Install Dependencies
+Run the following command to install all required dependencies:
+
+```sh
+go mod tidy
+```
+
+### 3️⃣ Configure `settings.csv`
+Edit the `settings.csv` file to match your preferences (see **[Configuration](#configuration)** for details).
+
+---
 
 ## Configuration
 
-For the tool to function correctly, "settings.csv" is required to be setup properly.
+To function correctly, Veil requires a properly configured **`settings.csv`** file.
 
-### settings.csv Parameters
+### `settings.csv` Parameters
 
-| Parameter            | Description                                         | Example Values                               |
-|----------------------|-----------------------------------------------------|----------------------------------------------|
-| Username             | Your FHDA Username                                  | `00000000`                                   |
-| Password             | Your FHDA Password                                  | `TestTestPassword123`                        |
-| Term                 | Term                                                | `2025 Winter De Anza`                        |
-| Subject              | Subject (Used for Class Search)                     | `MATH`                                       |
-| Mode                 | Type of Task                                        | `Signup`                                     |
-| CRNs                 | Course Reference Numbers                            | `47520,44412,41846`                          |
-| Webhook              | Discord Webhook URL (For Notifications)             | `https://discord.com/api/webhooks/[gone] `   |
-| SavedRegistrationTime | Saved Registration Time (Use Signup Mode)          | (Do not Edit on your own)                    |
+| Parameter             | Description                                      | Example Value                              |
+|----------------------|------------------------------------------------|-------------------------------------------|
+| `Username`           | Your FHDA student ID                          | `00000000`                                |
+| `Password`           | Your FHDA password                            | `TestTestPassword123`                     |
+| `Term`              | The academic term                              | `2025 Winter De Anza`                     |
+| `Subject`           | Subject for class search                      | `MATH`                                    |
+| `Mode`              | Task type (e.g., `Signup`, `Watch`)            | `Signup`                                  |
+| `CRNs`              | Course Reference Numbers                      | `47520,44412,41846`                       |
+| `Webhook`           | Discord Webhook for notifications             | `https://discord.com/api/webhooks/[...]`  |
+| `SavedRegistrationTime` | Registration time (auto-updated)       | *(Do not edit manually)*                  |
 
-To create a Discord Webhook, See [How to Create a Discord Webhook](https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks).
+#### Setting Up a Discord Webhook  
+Follow this guide: [How to Create a Discord Webhook](https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks).
 
-To edit settings.csv, a spreadsheet editor is recommended. See [Rons Editor](https://www.ronsplace.ca/products/ronseditor) or Google Sheets.
+#### Editing `settings.csv`  
+Use a spreadsheet editor like [Ron's Editor](https://www.ronsplace.ca/products/ronseditor) or **Google Sheets** for easy modifications.
+
+---
 
 ## Compilation
 
-To compile this program, run build.sh for the program to be compiled.
+To compile Veil, run:
+
+```sh
+bash build.sh
+```
+
+---
 
 ## Usage
 
-To run this program, run
-```
+Run the program using:
+
+```sh
 go run .
 ```
 
+Or, if you've compiled it:
+
+```sh
+./veil-cli
+```
+
+---
+
+## Modes
+
+| Mode      | Description |
+|-----------|------------|
+| **Release**  | Similar to `Signup` mode, but waits until **(SavedRegistrationTime - 5 minutes)** before execution (e.g., runs at 7:55 AM if your registration opens at 8:00 AM). Useful for overnight automation. |
+| **Signup**   | Enrolls in courses using specified **CRNs**. |
+| **Search**   | Searches all available sections for a given term and subject. |
+| **Transcript** | Exports your unofficial transcript (previously enrolled courses). |
+| **Watch**    | Monitors enrollment availability, notifies you when a spot opens, and attempts to enroll you in the waitlist automatically. |
+
+---
+
 ## Example Scenarios
 
-Scenario 1: 
-If I want the program to signup classes for me, I would run Signup mode and fill in settings.csv. If I want complete automation - 
-run Signup or Release mode first because it'll save your registration time. After the registration time is saved in settings.csv, the program will sleep until 5 minutes before registration opens.
+### 📌 Scenario 1: Auto-Enrollment on Registration Day  
+I want Veil to **automatically enroll** me when my registration opens.  
+1. Set `Mode` to **`Signup`** and fill in `settings.csv`.  
+2. To fully automate registration, first run **Signup** or **Release** mode to save the registration time.  
+3. The program will **sleep** until 5 minutes before your registration time, then attempt to enroll you.  
 
-Scenario 2:
-I'm currently looking at a class but the waitlist is full! I would run Watch mode and fill in settings.csv. If you see "Getting Enrollment Data (XXXXX)" this is completely normal. Once a waitlist spot is open, Watch mode will start a
-Signup task and try to enroll you in that waitlist spot.
+---
 
-Scenario 3:
-How do I get the catalog of a unpublished term? You would still use Search mode. The task will build the Term ID locally instead of using FHDA's API because that term isn't published yet.
+### 📌 Scenario 2: Monitoring a Waitlisted Class  
+I want to enroll in a class but the **waitlist is full**!  
+1. Set `Mode` to **`Watch`** in `settings.csv`.  
+2. Run Veil – it will continuously check for openings.  
+3. Once a **waitlist spot** is available, **Watch mode** will initiate a **Signup** task to enroll you.  
 
-## Mode
+---
 
-- **Release**: Essentially the same as Signup mode. However, the program will wait until (SavedRegistrationTime - 5 minutes) before running. For example, if my registration time was 8:00 AM, the program will sleep until 7:55 AM. (Meaning you can run this program overnight!)
-- **Signup**: Enroll in classes with specified CRNs (Course Refence Numbers).
-- **Search**: Search for all the sections based on given term, section and subject.
-- **Transcript**: Export your "unofficial transcript", or data of previously enrolled courses.
-- **Watch**: Monitor enrollment data, sending a notification if a waitlist or enrollment spot is available. If a waitlist spot is available, it'll run a Signup mode task and enroll in the waitlist.
+### 📌 Scenario 3: Accessing an Unpublished Course Catalog  
+I need the class catalog for a **future term** that isn’t published yet.  
+- Simply run **Search mode** – Veil will generate the term ID locally without relying on FHDA's API.  
+
+---
+
+## Screenshots
 
 ![image](https://github.com/aandrewduong/veil-v2/assets/135930507/e6e862df-2fde-4015-9095-d9e4818047f3)
 
+---
+
+### 🚀 Contributions & Feedback  
+Veil is open-source, and contributions are welcome! Feel free to submit issues, suggestions, or pull requests.
