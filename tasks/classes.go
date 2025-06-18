@@ -15,7 +15,7 @@ func (t *Task) SubmitTerm() error {
 		{"accept", "*/*"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"},
 	}
 
 	values := url.Values{
@@ -26,7 +26,7 @@ func (t *Task) SubmitTerm() error {
 		"uniqueSessionId": {t.Session.UniqueSessionId},
 	}
 
-	response, err := t.DoReq(t.MakeReq("POST", "https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/term/search?mode=search", headers, []byte(values.Encode())), "Submitting Term", true)
+	response, err := t.DoReq(t.MakeReq("POST", "https://reg.oci.fhda.edu/StudentRegistrationSsb/ssb/term/search?mode=search", headers, []byte(values.Encode())), "Submitting Term", true)
 	if err != nil {
 		discardResp(response)
 		return err
@@ -42,7 +42,7 @@ func (t *Task) GetCourses() error {
 		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"},
 	}
 
-	url := fmt.Sprintf("https://reg-prod.ec.fhda.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_subject=%s&txt_term=%s&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=100&sortColumn=subjectDescription&sortDirection=asc", t.Subject, t.TermID)
+	url := fmt.Sprintf("https://reg.oci.fhda.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_subject=%s&txt_term=%s&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=100&sortColumn=subjectDescription&sortDirection=asc", t.Subject, t.TermID)
 	response, err := t.DoReq(t.MakeReq("POST", url, headers, nil), fmt.Sprintf("Getting Courses (%s)", t.Subject), true)
 	if err != nil {
 		discardResp(response)
