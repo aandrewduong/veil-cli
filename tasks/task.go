@@ -5,12 +5,13 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"github.com/PuerkitoBio/goquery"
 	"io"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/PuerkitoBio/goquery"
 
 	http "github.com/bogdanfinn/fhttp"
 	tls_client "github.com/bogdanfinn/tls-client"
@@ -88,7 +89,7 @@ func (t *Task) SendNotification(action string, message string) {
 		{"accept", "application/json"},
 		{"accept-language", "en-US,en;q=0.9"},
 		{"content-type", "application/json"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"},
+		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"},
 	}
 
 	t.DoReq(t.MakeReq("POST", t.WebhookURL, headers, []byte(string(jsonData))), "Sending Notification", false)
@@ -217,7 +218,6 @@ func (t *Task) Run() {
 		t.Classes()
 	} else if t.Mode == "Transcript" {
 		t.HomepageURL = "https://dw-prod.ec.fhda.edu/responsiveDashboard/worksheets/WEB31"
-		t.SSOManagerURL = "https://dw-prod.ec.fhda.edu/responsiveDashboard/saml/SSO"
 		t.Transcript()
 	} else if t.Mode == "Watch" {
 		t.Watch()

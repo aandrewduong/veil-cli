@@ -2,7 +2,7 @@
 
 Veil is an open-source program written in **Golang** that efficiently scrapes, processes, and manages class and college enrollment data at **De Anza and Foothill College**. It provides seamless class searching, exporting, and automated enrollment monitoring.
 
-For a graphical user interface, check out **[Veil-GUI](https://github.com/aandrewduong/veil)**.
+Updated for new MyPortal changes.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Andrew%20Duong-blue)](https://www.linkedin.com/in/andrew-duong-3a9931259/)
 
