@@ -11,13 +11,6 @@ import (
 )
 
 func (t *Task) SubmitTerm() error {
-	headers := [][2]string{
-		{"accept", "*/*"},
-		{"accept-language", "en-US,en;q=0.9"},
-		{"content-type", "application/x-www-form-urlencoded"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"},
-	}
-
 	values := url.Values{
 		"term":            {t.TermID},
 		"studyPath":       {},
@@ -26,24 +19,17 @@ func (t *Task) SubmitTerm() error {
 		"uniqueSessionId": {t.Session.UniqueSessionId},
 	}
 
-	response, err := t.DoReq(t.MakeReq("POST", "https://reg.oci.fhda.edu/StudentRegistrationSsb/ssb/term/search?mode=search", headers, []byte(values.Encode())), "Submitting Term", true)
+	response, err := t.DoReq(t.MakeReq("POST", BaseRegURL+PathTermSearch+"?mode=search", t.GetHeaders("form"), []byte(values.Encode())), "Submitting Term", true)
 	if err != nil {
 		discardResp(response)
 		return err
 	}
-
 	return nil
 }
 
 func (t *Task) GetCourses() error {
-	headers := [][2]string{
-		{"accept", "application/json"},
-		{"accept-language", "en-US,en;q=0.9"},
-		{"user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"},
-	}
-
-	url := fmt.Sprintf("https://reg.oci.fhda.edu/StudentRegistrationSsb/ssb/searchResults/searchResults?txt_subject=%s&txt_term=%s&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=100&sortColumn=subjectDescription&sortDirection=asc", t.Subject, t.TermID)
-	response, err := t.DoReq(t.MakeReq("POST", url, headers, nil), fmt.Sprintf("Getting Courses (%s)", t.Subject), true)
+	url := fmt.Sprintf("%s%s?txt_subject=%s&txt_term=%s&startDatepicker=&endDatepicker=&pageOffset=0&pageMaxSize=100&sortColumn=subjectDescription&sortDirection=asc", BaseRegURL, PathSearchResults, t.Subject, t.TermID)
+	response, err := t.DoReq(t.MakeReq("POST", url, t.GetHeaders("json"), nil), fmt.Sprintf("Getting Courses (%s)", t.Subject), true)
 	if err != nil {
 		discardResp(response)
 		return err
@@ -55,7 +41,7 @@ func (t *Task) GetCourses() error {
 	}
 
 	if courses.TotalCount == 0 {
-		fmt.Println("No Courses Found")
+		fmt.Printf("[%s] No Courses Found\n", t.Username)
 		return nil
 	}
 
@@ -92,11 +78,10 @@ func (t *Task) GetCourses() error {
 }
 
 func (t *Task) ExportCourseData(courses []CourseInfo) error {
-	currentTime := time.Now()
-	fileName := fmt.Sprintf("%s.csv", currentTime.Format("2006-01-02_15-04-05"))
+	fileName := fmt.Sprintf("%s_%s.csv", t.Username, time.Now().Format("2006-01-02_15-04-05"))
 	file, err := os.Create(fileName)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	defer file.Close()
 
@@ -104,11 +89,11 @@ func (t *Task) ExportCourseData(courses []CourseInfo) error {
 	defer writer.Flush()
 
 	header := []string{"Term", "Course Reference Number", "Subject", "Course Number", "Sequence Number", "Course Title", "Display Name", "Begin Time", "End Time", "Start Date", "End Date", "Meeting Type", "Room", "Maximum Enrollment", "Enrollment", "Seats Available", "Waitlist Available"}
-	fmt.Printf("Writing %s\n", fileName)
-	err = writer.Write(header)
-	if err != nil {
+	fmt.Printf("[%s] Writing %s\n", t.Username, fileName)
+	if err := writer.Write(header); err != nil {
 		return err
 	}
+
 	for _, course := range courses {
 		record := []string{
 			course.TermDesc,
@@ -129,17 +114,20 @@ func (t *Task) ExportCourseData(courses []CourseInfo) error {
 			strconv.Itoa(course.SeatsAvailable),
 			strconv.Itoa(course.WaitAvailable),
 		}
-		err = writer.Write(record)
-		if err != nil {
+		if err := writer.Write(record); err != nil {
 			return err
 		}
 	}
-	fmt.Println("Exported Search Data")
+	fmt.Printf("[%s] Exported Search Data\n", t.Username)
 	return nil
 }
 
 func (t *Task) Classes() error {
-	t.GenSessionId()
+	t.HomepageURL = BaseRegURL + "/StudentRegistrationSsb/saml/login"
+	if err := t.CheckAuthSession(); err != nil {
+		fmt.Printf("[%s] Authentication failed: %v\n", t.Username, err)
+		return err
+	}
 	t.SubmitTerm()
 	t.GetCourses()
 	return nil

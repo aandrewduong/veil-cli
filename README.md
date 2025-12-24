@@ -1,10 +1,8 @@
 # Veil-CLI
 
-Veil is an open-source program written in **Golang** that efficiently scrapes, processes, and manages class and college enrollment data at **De Anza and Foothill College**. It provides seamless class searching, exporting, and automated enrollment monitoring.
+Veil is a command-line interface written in Go designed for the automated management of course enrollment at De Anza and Foothill College. It streamlines class searching, data exporting, and enrollment monitoring by interfacing directly with the college's registration systems.
 
-Updated for new MyPortal changes.
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Andrew%20Duong-blue)](https://www.linkedin.com/in/andrew-duong-3a9931259/)
+This version is optimized for the latest MyPortal and StudentRegistrationSsb updates.
 
 ---
 
@@ -12,80 +10,100 @@ Updated for new MyPortal changes.
 
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
-- [Installation & Setup](#installation--setup)
+- [Installation and Setup](#installation-and-setup)
 - [Configuration](#configuration)
 - [Compilation](#compilation)
 - [Usage](#usage)
-- [Modes](#modes)
+- [Operation Modes](#operation-modes)
 - [Example Scenarios](#example-scenarios)
 
 ---
 
 ## Key Features
 
-✅ **Class Search & Export** – Search for classes and export results in CSV format.  
-✅ **Unofficial Transcript** – Retrieve and export previously enrolled courses.  
-✅ **Automated Enrollment** – Enroll in classes at lightning speed.  
-✅ **Class Monitoring** – Watch class enrollment, get notified of open spots, and auto-enroll in waitlisted courses.  
+- **Course Search and Export**: Query available courses and export results to CSV format.
+- **Academic Transcript**: Retrieve and export comprehensive unofficial transcript data.
+- **Automated Enrollment**: Execute course registration with high efficiency.
+- **Enrollment Monitoring**: Track course availability with real-time Discord notifications and automated waitlist enrollment.
+- **Multi-Account Support**: Manage multiple student accounts and tasks simultaneously via a concurrent task engine.
 
 ---
 
 ## Prerequisites
 
-Ensure you have **Go (>=1.22.0)** installed. Download it [here](https://go.dev/doc/install).
+- **Go (version 1.22.0 or higher)**: Installation instructions are available at the [official Go website](https://go.dev/doc/install).
 
 ---
 
-## Installation & Setup
+## Installation and Setup
 
-### 1️⃣ Clone the Repository
-First, clone the Veil repository to your local machine:
+### 1. Clone the Repository
+Clone the Veil repository to your local directory:
 
 ```sh
 git clone https://github.com/aandrewduong/veil-cli.git
 cd veil-cli
 ```
 
-### 2️⃣ Install Dependencies
-Run the following command to install all required dependencies:
+### 2. Install Dependencies
+Initialize and download the required Go modules:
 
 ```sh
 go mod tidy
 ```
 
-### 3️⃣ Configure `settings.csv`
-Edit the `settings.csv` file to match your preferences (see **[Configuration](#configuration)** for details).
+### 3. Configure the Environment
+Create a `config.json` file in the root directory to define your accounts and tasks. Refer to the [Configuration](#configuration) section for details.
 
 ---
 
 ## Configuration
 
-To function correctly, Veil requires a properly configured **`settings.csv`** file.
+Veil utilizes a `config.json` file to manage task parameters and credentials.
 
-### `settings.csv` Parameters
+### Configuration Schema
 
-| Parameter             | Description                                      | Example Value                              |
-|----------------------|------------------------------------------------|-------------------------------------------|
-| `Username`           | Your FHDA student ID                          | `00000000`                                |
-| `Password`           | Your FHDA password                            | `TestTestPassword123`                     |
-| `Term`              | The academic term                              | `2025 Winter De Anza`                     |
-| `Subject`           | Subject for class search                      | `MATH`                                    |
-| `Mode`              | Task type (e.g., `Signup`, `Watch`)            | `Signup`                                  |
-| `CRNs`              | Course Reference Numbers                      | `47520,44412,41846`                       |
-| `Webhook`           | Discord Webhook for notifications             | `https://discord.com/api/webhooks/[...]`  |
-| `SavedRegistrationTime` | Registration time (auto-updated)       | *(Do not edit manually)*                  |
+```json
+{
+  "tasks": [
+    {
+      "username": "00000000",
+      "password": "SecurePassword123",
+      "term": "2025 Winter De Anza",
+      "subject": "MATH",
+      "mode": "Signup",
+      "crns": ["47520", "44412"],
+      "webhook_url": "https://discord.com/api/webhooks/...",
+      "registration_time": "12/24/2025 08:00 AM"
+    }
+  ]
+}
+```
 
-#### Setting Up a Discord Webhook  
-Follow this guide: [How to Create a Discord Webhook](https://hookdeck.com/webhooks/platforms/how-to-get-started-with-discord-webhooks).
+### Field Definitions
 
-#### Editing `settings.csv`  
-Use a spreadsheet editor like [Ron's Editor](https://www.ronsplace.ca/products/ronseditor) or **Google Sheets** for easy modifications.
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `username` | FHDA Student ID | `00000000` |
+| `password` | FHDA Account Password | `SecurePassword123` |
+| `term` | Target academic term | `2025 Winter De Anza` |
+| `subject` | Subject code for search | `MATH` |
+| `mode` | Operation mode (e.g., `Signup`, `Watch`, `Classes`) | `Signup` |
+| `crns` | Array of Course Reference Numbers | `["47520", "44412"]` |
+| `webhook_url` | Discord Webhook URL for notifications | `https://discord.com/...` |
+| `registration_time` | Registration start time (required for `Release` mode) | `01/02/2006 08:00 AM` |
 
 ---
 
 ## Compilation
 
-To compile Veil, run:
+To compile the source code into a binary executable:
+
+```sh
+make build
+```
+
+Alternatively, using the provided build script:
 
 ```sh
 bash build.sh
@@ -95,13 +113,19 @@ bash build.sh
 
 ## Usage
 
-Run the program using:
+Execute the program directly using the Makefile:
 
 ```sh
-go run .
+make run
 ```
 
-Or, if you've compiled it:
+Or using the Go toolchain:
+
+```sh
+go run main.go
+```
+
+Alternatively, run the compiled binary:
 
 ```sh
 ./veil-cli
@@ -109,47 +133,33 @@ Or, if you've compiled it:
 
 ---
 
-## Modes
+## Operation Modes
 
-| Mode      | Description |
-|-----------|------------|
-| **Release**  | Similar to `Signup` mode, but waits until **(SavedRegistrationTime - 5 minutes)** before execution (e.g., runs at 7:55 AM if your registration opens at 8:00 AM). Useful for overnight automation. |
-| **Signup**   | Enrolls in courses using specified **CRNs**. |
-| **Search**   | Searches all available sections for a given term and subject. |
-| **Transcript** | Exports your unofficial transcript (previously enrolled courses). |
-| **Watch**    | Monitors enrollment availability, notifies you when a spot opens, and attempts to enroll you in the waitlist automatically. |
+| Mode | Description |
+|------|-------------|
+| **Release** | Scheduled execution. The task idles until 5 minutes prior to the `registration_time`, maintaining an active session for immediate enrollment. |
+| **Signup** | Immediate enrollment. Attempts to register for the provided CRNs as soon as the task starts. |
+| **Classes** | Course discovery. Scrapes all available sections for the specified term and subject, exporting them to a CSV file. |
+| **Transcript** | Data archival. Retrieves the student's unofficial transcript and exports it to a CSV file. |
+| **Watch** | Enrollment tracking. Continuously monitors course availability. If a spot becomes available, it notifies the user via Discord and attempts auto-enrollment. |
 
 ---
 
 ## Example Scenarios
 
-### 📌 Scenario 1: Auto-Enrollment on Registration Day  
-I want Veil to **automatically enroll** me when my registration opens.  
-1. Set `Mode` to **`Signup`** and fill in `settings.csv`.  
-2. To fully automate registration, first run **Signup** or **Release** mode to save the registration time.  
-3. The program will **sleep** until 5 minutes before your registration time, then attempt to enroll you.  
+### Scenario 1: Automated Registration Day Execution
+To ensure enrollment at the exact moment registration opens:
+1. Configure a task with the `Release` mode and specify your exact `registration_time`.
+2. Initialize Veil. The engine will maintain your session and begin the signup sequence exactly 5 minutes before your registration window opens.
+
+### Scenario 2: Monitoring Full Waitlists
+To secure a spot in a class that is currently full:
+1. Configure a task with the `Watch` mode and include the target CRNs.
+2. Veil will monitor the enrollment status. When a vacancy occurs, the program will trigger a `Signup` sequence and alert you via Discord.
+
+### Scenario 3: Accessing Early Course Data
+To view the course catalog for a future term before it is officially published in the portal:
+1. Execute the `Classes` mode for the target term.
+2. Veil generates the necessary term identifiers locally, allowing it to retrieve section data regardless of portal visibility.
 
 ---
-
-### 📌 Scenario 2: Monitoring a Waitlisted Class  
-I want to enroll in a class but the **waitlist is full**!  
-1. Set `Mode` to **`Watch`** in `settings.csv`.  
-2. Run Veil – it will continuously check for openings.  
-3. Once a **waitlist spot** is available, **Watch mode** will initiate a **Signup** task to enroll you.  
-
----
-
-### 📌 Scenario 3: Accessing an Unpublished Course Catalog  
-I need the class catalog for a **future term** that isn’t published yet.  
-- Simply run **Search mode** – Veil will generate the term ID locally without relying on FHDA's API.  
-
----
-
-## Screenshots
-
-![image](https://github.com/aandrewduong/veil-v2/assets/135930507/e6e862df-2fde-4015-9095-d9e4818047f3)
-
----
-
-### 🚀 Contributions & Feedback  
-Veil is open-source, and contributions are welcome! Feel free to submit issues, suggestions, or pull requests.

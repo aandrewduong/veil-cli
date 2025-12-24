@@ -1,0 +1,14 @@
+{
+  "tasks": [
+    {
+      "username": "username",
+      "password": "password",
+      "term": "2026 Winter De Anza",
+      "subject": "MATH",
+      "mode": "Signup",
+      "crns": ["47520", "44412"],
+      "webhook_url": "webhook_url",
+      "registration_time": "12/24/2025 08:00 AM"
+    }
+  ]
+}
