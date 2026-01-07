@@ -163,3 +163,6 @@ To view the course catalog for a future term before it is officially published i
 2. Veil generates the necessary term identifiers locally, allowing it to retrieve section data regardless of portal visibility.
 
 ---
+
+
+<img width="1644" height="890" alt="image" src="https://github.com/user-attachments/assets/d1128495-8a71-4892-889c-c4771cf3a6ce" />
