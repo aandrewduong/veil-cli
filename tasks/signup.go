@@ -104,95 +104,91 @@ func (t *Task) CheckCRNs() error {
 }
 
 func (t *Task) GetRegistrationStatus() error {
-	for {
-		values := url.Values{
-			"term":            {t.TermID},
-			"studyPath":       {},
-			"startDatepicker": {},
-			"endDatepicker":   {},
-			"uniqueSessionId": {t.Session.UniqueSessionId},
+	values := url.Values{
+		"term":            {t.TermID},
+		"studyPath":       {},
+		"startDatepicker": {},
+		"endDatepicker":   {},
+		"uniqueSessionId": {t.Session.UniqueSessionId},
+	}
+
+	response, err := t.DoReq(t.MakeReq("POST", BaseRegURL+PathTermSearch+"?mode=registration", t.GetHeaders("form"), []byte(values.Encode())), "Getting Registration Status", true)
+	if err != nil {
+		return err
+	}
+
+	body, _ := readBody(response)
+	registrationStatus := RegistrationStatus{}
+	if err := json.Unmarshal(body, &registrationStatus); err != nil {
+		return err
+	}
+
+	var hasFailure, hasRegistrationTime bool
+	var timeFailure string
+
+	for _, failure := range registrationStatus.StudentEligFailures {
+		fmt.Printf("[%s] Eligibility Message: %s\n", t.Username, failure)
+		hasFailure = true
+		if strings.Contains(failure, "You can register from") {
+			hasRegistrationTime = true
+			timeFailure = failure
+			break
 		}
+	}
 
-		response, err := t.DoReq(t.MakeReq("POST", BaseRegURL+PathTermSearch+"?mode=registration", t.GetHeaders("form"), []byte(values.Encode())), "Getting Registration Status", true)
-		if err != nil {
-			return err
-		}
-
-		body, _ := readBody(response)
-		registrationStatus := RegistrationStatus{}
-		if err := json.Unmarshal(body, &registrationStatus); err != nil {
-			return err
-		}
-
-		var hasFailure, hasRegistrationTime bool
-		var timeFailure string
-
-		for _, failure := range registrationStatus.StudentEligFailures {
-			fmt.Printf("[%s] Eligibility Message: %s\n", t.Username, failure)
-			hasFailure = true
-			if strings.Contains(failure, "You can register from") {
-				hasRegistrationTime = true
-				timeFailure = failure
-				break
-			}
-		}
-
-		if !hasFailure {
-			return nil
-		}
-
-		if !hasRegistrationTime {
-			return errors.New(registrationStatus.StudentEligFailures[len(registrationStatus.StudentEligFailures)-1])
-		}
-
-		pattern := regexp.MustCompile(`\d{2}/\d{2}/\d{4} \d{2}:\d{2} [APM]{2}`)
-		matches := pattern.FindAllString(timeFailure, -1)
-
-		if len(matches) > 0 {
-			location, _ := time.LoadLocation("America/Los_Angeles")
-			targetTime, _ := time.ParseInLocation("01/02/2006 03:04 PM", matches[0], location)
-			now := time.Now().In(location)
-
-			if now.After(targetTime) {
-				fmt.Printf("[%s] Registration window is open. Proceeding...\n", t.Username)
-				time.Sleep(2 * time.Second)
-				// Continue loop to re-check status
-				continue
-			} else {
-				t.CheckCRNs()
-				timeToWait := targetTime.Sub(now)
-
-				fmt.Printf("[%s] Waiting for registration window: %s\n", t.Username, targetTime.Format(time.RFC1123))
-				fmt.Printf("[%s] Re-checking in %s\n", t.Username, formatDuration(targetTime.Sub(now)))
-
-				// Wait in a separate goroutine to keep session alive
-				stopChan := make(chan bool)
-				go func() {
-					ticker := time.NewTicker(5 * time.Minute)
-					defer ticker.Stop()
-					for {
-						select {
-						case <-ticker.C:
-							if err := t.CheckAuthSession(); err != nil {
-								fmt.Printf("[%s] Session heartbeat failed: %v\n", t.Username, err)
-							}
-						case <-stopChan:
-							return
-						}
-					}
-				}()
-
-				time.Sleep(timeToWait)
-				close(stopChan)
-				if err := t.CheckAuthSession(); err != nil {
-					return err
-				}
-				// Continue loop to re-check status
-				continue
-			}
-		}
+	if !hasFailure {
 		return nil
 	}
+
+	if !hasRegistrationTime {
+		return errors.New(registrationStatus.StudentEligFailures[len(registrationStatus.StudentEligFailures)-1])
+	}
+
+	pattern := regexp.MustCompile(`\d{2}/\d{2}/\d{4} \d{2}:\d{2} [APM]{2}`)
+	matches := pattern.FindAllString(timeFailure, -1)
+
+	if len(matches) > 0 {
+		location, _ := time.LoadLocation("America/Los_Angeles")
+		targetTime, _ := time.ParseInLocation("01/02/2006 03:04 PM", matches[0], location)
+		now := time.Now().In(location)
+
+		if now.After(targetTime) {
+			fmt.Printf("[%s] Registration window is open. Proceeding...\n", t.Username)
+			time.Sleep(2 * time.Second)
+			return nil
+		} else {
+			t.CheckCRNs()
+			timeToWait := targetTime.Sub(now)
+
+			fmt.Printf("[%s] Waiting for registration window: %s\n", t.Username, targetTime.Format(time.RFC1123))
+			fmt.Printf("[%s] Re-checking in %s\n", t.Username, formatDuration(targetTime.Sub(now)))
+
+			// Wait in a separate goroutine to keep session alive
+			stopChan := make(chan bool)
+			go func() {
+				ticker := time.NewTicker(5 * time.Minute)
+				defer ticker.Stop()
+				for {
+					select {
+					case <-ticker.C:
+						if err := t.CheckAuthSession(); err != nil {
+							fmt.Printf("[%s] Session heartbeat failed: %v\n", t.Username, err)
+						}
+					case <-stopChan:
+						return
+					}
+				}
+			}()
+
+			time.Sleep(timeToWait)
+			close(stopChan)
+			if err := t.CheckAuthSession(); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	return nil
 }
 
 func (t *Task) VisitClassRegistration() error {
